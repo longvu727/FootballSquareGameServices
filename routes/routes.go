@@ -3,9 +3,9 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
+	"footballsquaregameservices/app"
 	"log"
 	"net/http"
-	"squareservices/services"
 )
 
 type Handler = func(writer http.ResponseWriter, request *http.Request)
@@ -35,10 +35,18 @@ func home(writer http.ResponseWriter, request *http.Request) {
 func createGame(writer http.ResponseWriter, request *http.Request) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
-	var createFootballSquareGame services.CreateFootballSquareGame
+	response, err := app.CreateFootballSquareGame(request)
 
-	json.NewDecoder(request.Body).Decode(&createFootballSquareGame)
-	response := services.CreateFootballSquareGame(createFootballSquareGame)
+	if err != nil {
+		response.ErrorMessage = `Unable to create game`
+		responseStr, _ := json.Marshal(response)
+
+		writer.WriteHeader(http.StatusInternalServerError)
+		writer.Write(responseStr)
+
+		return
+	}
+
 	responseStr, _ := json.Marshal(response)
 
 	writer.WriteHeader(http.StatusOK)

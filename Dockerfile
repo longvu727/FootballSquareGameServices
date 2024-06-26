@@ -1,4 +1,18 @@
 FROM golang:1.22.4-alpine3.20 AS build
+RUN apk add --no-cache git \
+                openssh-client \
+                ca-certificates
+
+ENV GOPRIVATE="github.com/longvu727/FootballSquaresLibs"
+RUN git config --global url."ssh://git@github.com/".insteadOf "https://github.com/"
+
+RUN mkdir -p /root/.ssh && \
+    chmod 0700 /root/.ssh && \
+    ssh-keyscan gitlab.com > /root/.ssh/known_hosts &&\
+    chmod 644 /root/.ssh/known_hosts && touch /root/.ssh/config \
+    && echo "StrictHostKeyChecking no" > /root/.ssh/config
+
+COPY env/.ssh/id_* /root/.ssh/
 
 ENV GOOS=linux GOARCH=amd64
 
@@ -13,8 +27,6 @@ COPY . .
 RUN go build -ldflags "-s -w" -o api main.go
 
 FROM alpine:3.20 AS runtime
-
-RUN apk add curl
 
 WORKDIR /api
 
@@ -31,7 +43,5 @@ RUN adduser \
 COPY --from=build --chown=${USER}:${USER} /api/ .
 
 USER ${USER}:${USER}
-
-EXPOSE 3000
 
 CMD ["./api"]

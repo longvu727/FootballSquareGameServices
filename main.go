@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"footballsquaregameservices/routes"
 	"log"
 	"net/http"
 	"os"
-	"squareservices/routes"
-	"squareservices/util"
+
+	"github.com/longvu727/FootballSquaresLibs/util"
 )
 
 func main() {
