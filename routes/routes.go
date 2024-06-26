@@ -15,14 +15,14 @@ type Handler = func(writer http.ResponseWriter, request *http.Request, config *u
 func Register(config *util.Config) {
 	log.Println("Registering routes")
 	routes := map[string]Handler{
-		"/":                home,
-		"/CreateGame":      createGame,
-		"/GetGame":         getGame,
-		"/GetEmptySquares": getEmptySquares,
-		"/ReserveSquares":  reserveSquares,
-		"/SaveSquares":     saveSquares,
-		"/DeleteSquare":    deleteSquare,
-		"/GenerateNumber":  generateNumber,
+		"/":                        home,
+		"POST /CreateGame":         createGame,
+		"GET /GetGame/{game_guid}": getGame,
+		"/GetEmptySquares":         getEmptySquares,
+		"/ReserveSquares":          reserveSquares,
+		"/SaveSquares":             saveSquares,
+		"/DeleteSquare":            deleteSquare,
+		"/GenerateNumber":          generateNumber,
 	}
 
 	for route, handler := range routes {
@@ -59,8 +59,22 @@ func createGame(writer http.ResponseWriter, request *http.Request, config *util.
 
 func getGame(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
+	response, err := app.GetFootballSquareGame(request, config)
+
+	if err != nil {
+		response.ErrorMessage = `Unable to create game`
+		responseStr, _ := json.Marshal(response)
+
+		writer.WriteHeader(http.StatusInternalServerError)
+		writer.Write(responseStr)
+
+		return
+	}
+
+	responseStr, _ := json.Marshal(response)
+
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("getGame Service Acknowledged"))
+	writer.Write(responseStr)
 }
 
 func getEmptySquares(writer http.ResponseWriter, request *http.Request, config *util.Config) {

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/longvu727/FootballSquaresLibs/services"
+	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
+	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
+	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
 	"github.com/longvu727/FootballSquaresLibs/util"
 )
 
@@ -30,7 +32,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 	var createGameParams CreateGameParams
 	json.NewDecoder(request.Body).Decode(&createGameParams)
 
-	createSquareService := services.CreateSquare{
+	createSquareService := squareservices.CreateSquare{
 		SquareSize: int(createGameParams.SquareSize),
 		Sport:      createGameParams.Sport,
 	}
@@ -40,7 +42,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		return &createGameResponse, nil
 	}
 
-	createGameService := services.CreateGame{
+	createGameService := gameservices.CreateGame{
 		Sport:      createGameParams.Sport,
 		SquareSize: createGameParams.SquareSize,
 		TeamA:      createGameParams.TeamA,
@@ -52,7 +54,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		return &createGameResponse, nil
 	}
 
-	createFootballSquareGameService := services.CreateFootballSquareGame{
+	createFootballSquareGameService := footballsquaregameservices.CreateFootballSquareGame{
 		GameID:     int(createGameServiceResponse.GameID),
 		SquareID:   createSquareServiceResponse.SquareID,
 		SquareSize: int(createGameParams.SquareSize),

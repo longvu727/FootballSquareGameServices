@@ -2,11 +2,10 @@ module footballsquaregameservices
 
 go 1.22.2
 
-require github.com/longvu727/FootballSquaresLibs v0.0.0-20240626023347-bb2c9cb63551
-
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/longvu727/FootballSquaresLibs v0.0.0-20240626215527-b5b76b36f356 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
