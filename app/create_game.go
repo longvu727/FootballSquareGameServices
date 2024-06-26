@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/longvu727/FootballSquaresLibs/services"
+	"github.com/longvu727/FootballSquaresLibs/util"
 )
 
 type CreateGameParams struct {
@@ -23,7 +24,7 @@ func (response CreateGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func CreateFootballSquareGame(request *http.Request) (*CreateGameResponse, error) {
+func CreateFootballSquareGame(request *http.Request, config *util.Config) (*CreateGameResponse, error) {
 	var createGameResponse CreateGameResponse
 
 	var createGameParams CreateGameParams
@@ -34,7 +35,7 @@ func CreateFootballSquareGame(request *http.Request) (*CreateGameResponse, error
 		Sport:      createGameParams.Sport,
 	}
 
-	createSquareServiceResponse, err := createSquareService.Request()
+	createSquareServiceResponse, err := createSquareService.Request(config)
 	if err != nil {
 		return &createGameResponse, nil
 	}
@@ -46,7 +47,7 @@ func CreateFootballSquareGame(request *http.Request) (*CreateGameResponse, error
 		TeamB:      createGameParams.TeamB,
 	}
 
-	createGameServiceResponse, err := createGameService.Request()
+	createGameServiceResponse, err := createGameService.Request(config)
 	if err != nil {
 		return &createGameResponse, nil
 	}
@@ -57,7 +58,7 @@ func CreateFootballSquareGame(request *http.Request) (*CreateGameResponse, error
 		SquareSize: int(createGameParams.SquareSize),
 	}
 
-	_, err = createFootballSquareGameService.Request()
+	_, err = createFootballSquareGameService.Request(config)
 	if err != nil {
 		return &createGameResponse, nil
 	}

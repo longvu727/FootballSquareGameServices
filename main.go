@@ -11,19 +11,19 @@ import (
 )
 
 func main() {
-	config, err := util.LoadConfig("./env", "app", "env")
+	config, err := util.LoadConfig("./env", "app", "json")
 	log.SetOutput(os.Stdout)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	handler(config)
+	handler(&config)
 }
 
-func handler(config util.Config) error {
+func handler(config *util.Config) error {
 
-	routes.Register()
+	routes.Register(config)
 
 	address := fmt.Sprintf(":%s", config.PORT)
 	log.Printf("Listening on %s", address)

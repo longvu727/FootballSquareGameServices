@@ -6,11 +6,13 @@ import (
 	"footballsquaregameservices/app"
 	"log"
 	"net/http"
+
+	"github.com/longvu727/FootballSquaresLibs/util"
 )
 
-type Handler = func(writer http.ResponseWriter, request *http.Request)
+type Handler = func(writer http.ResponseWriter, request *http.Request, config *util.Config)
 
-func Register() {
+func Register(config *util.Config) {
 	log.Println("Registering routes")
 	routes := map[string]Handler{
 		"/":                home,
@@ -24,18 +26,20 @@ func Register() {
 	}
 
 	for route, handler := range routes {
-		http.HandleFunc(route, handler)
+		http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			handler(w, r, config)
+		})
 	}
 }
 
-func home(writer http.ResponseWriter, request *http.Request) {
+func home(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	fmt.Fprintf(writer, "{\"Acknowledged\": true}")
 }
 
-func createGame(writer http.ResponseWriter, request *http.Request) {
+func createGame(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
-	response, err := app.CreateFootballSquareGame(request)
+	response, err := app.CreateFootballSquareGame(request, config)
 
 	if err != nil {
 		response.ErrorMessage = `Unable to create game`
@@ -53,36 +57,36 @@ func createGame(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(responseStr)
 }
 
-func getGame(writer http.ResponseWriter, request *http.Request) {
+func getGame(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("getGame Service Acknowledged"))
 }
 
-func getEmptySquares(writer http.ResponseWriter, request *http.Request) {
+func getEmptySquares(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("getEmptySquares Service Acknowledged"))
 }
 
-func reserveSquares(writer http.ResponseWriter, request *http.Request) {
+func reserveSquares(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("reserveSquares Service Acknowledged"))
 }
 
-func saveSquares(writer http.ResponseWriter, request *http.Request) {
+func saveSquares(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("Save Service Acknowledged"))
 }
 
-func deleteSquare(writer http.ResponseWriter, request *http.Request) {
+func deleteSquare(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("deleteSquare Service Acknowledged"))
 }
-func generateNumber(writer http.ResponseWriter, request *http.Request) {
+func generateNumber(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("GenerateNumber Service Acknowledged"))

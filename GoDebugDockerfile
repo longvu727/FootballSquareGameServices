@@ -32,9 +32,6 @@ COPY --from=build --chown=${USER}:${USER} /api/ .
 
 USER ${USER}:${USER}
 
-EXPOSE 3000
-EXPOSE 2000
-
 #CMD ["./api"]
 
-CMD [ "/go/bin/dlv", "--listen=:2000", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "./api" ]
+CMD [ "/go/bin/dlv", "--listen=:2101", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "./api" ]

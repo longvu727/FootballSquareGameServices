@@ -1,0 +1,8 @@
+{
+    "PORT": 3101,
+    "microservices": {
+        "squaremicroservices": "http://squaremicroservices:3000",
+        "footballsquaregamemicroservices": "http://footballsquaregamemicroservices:3001",
+        "gamemicroservices": "http://gamemicroservices:3002"
+    }
+}
