@@ -78,6 +78,7 @@ func getGame(writer http.ResponseWriter, request *http.Request, config *util.Con
 
 	responseStr, _ := json.Marshal(response)
 
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(responseStr)
 }
