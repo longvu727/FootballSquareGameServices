@@ -59,7 +59,12 @@ func createGame(writer http.ResponseWriter, request *http.Request, config *util.
 
 func getGame(writer http.ResponseWriter, request *http.Request, config *util.Config) {
 	log.Printf("Received request for %s\n", request.URL.Path)
-	response, err := app.GetFootballSquareGame(request, config)
+
+	getGameParams := app.GetGameParams{
+		GameGUID: request.PathValue("game_guid"),
+	}
+
+	response, err := app.GetFootballSquareGame(getGameParams, config)
 
 	if err != nil {
 		response.ErrorMessage = `Unable to create game`

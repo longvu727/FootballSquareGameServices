@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"net/http"
 
 	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
 	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
@@ -26,11 +25,8 @@ func (response GetGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func GetFootballSquareGame(request *http.Request, config *util.Config) (*GetGameResponse, error) {
+func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*GetGameResponse, error) {
 	var getGameResponse GetGameResponse
-
-	var getGameParams GetGameParams
-	json.NewDecoder(request.Body).Decode(&getGameParams)
 
 	getGameByGUID := gameservices.GetGameByGUID{GameGUID: getGameParams.GameGUID}
 	getGameByGUIDResponse, err := getGameByGUID.Request(config)
