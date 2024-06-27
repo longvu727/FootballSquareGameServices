@@ -13,9 +13,9 @@ type GetGameParams struct {
 	GameGUID string `json:"game_guid"`
 }
 type GetGameResponse struct {
-	Game            gameservices.Game                          `json:"game"`
-	Square          squareservices.Square                      `json:"square"`
-	FootballSquares footballsquaregameservices.FootballSquares `json:"football_squares"`
+	Game            gameservices.Game                                      `json:"game"`
+	Square          squareservices.Square                                  `json:"square"`
+	FootballSquares []footballsquaregameservices.FootballSquareGameElement `json:"football_squares"`
 
 	ErrorMessage string `json:"error_message"`
 }
