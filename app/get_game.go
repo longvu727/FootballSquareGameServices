@@ -12,10 +12,30 @@ import (
 type GetGameParams struct {
 	GameGUID string `json:"game_guid"`
 }
+
+type FootballSquare struct {
+	ColumnIndex        int    `json:"column_index"`
+	RowIndex           int    `json:"row_index"`
+	WinnerQuaterNumber int    `json:"winner_quater_number"`
+	Winner             bool   `json:"winner"`
+	UserGUID           string `json:"user_guid"`
+	UserAlias          string `json:"user_alias"`
+	UserName           string `json:"user_name"`
+}
+
 type GetGameResponse struct {
-	Game            gameservices.Game                                      `json:"game"`
-	Square          squareservices.Square                                  `json:"square"`
-	FootballSquares []footballsquaregameservices.FootballSquareGameElement `json:"football_squares"`
+	//Game
+	GameGUID string `json:"game_guid"`
+	Sport    string `json:"sport"`
+	TeamA    string `json:"team_a"`
+	TeamB    string `json:"team_b"`
+
+	//Square
+	SquareSize   int    `json:"square_size"`
+	RowPoints    string `json:"row_points"`
+	ColumnPoints string `json:"column_points"`
+
+	FootballSquares []FootballSquare `json:"football_squares"`
 
 	ErrorMessage string `json:"error_message"`
 }
@@ -50,9 +70,26 @@ func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*G
 		return &getGameResponse, nil
 	}
 
-	getGameResponse.FootballSquares = getFootballSquareGameByGameIDResponse.FootballSquares
-	getGameResponse.Square = getSquareResponse.Square
-	getGameResponse.Game = getGameByGUIDResponse.Game
+	getGameResponse.GameGUID = getGameByGUIDResponse.GameGUID
+	getGameResponse.Sport = getGameByGUIDResponse.Sport
+	getGameResponse.TeamA = getGameByGUIDResponse.TeamA
+	getGameResponse.TeamB = getGameByGUIDResponse.TeamB
+
+	getGameResponse.SquareSize = getSquareResponse.SquareSize
+	getGameResponse.RowPoints = getSquareResponse.RowPoints
+	getGameResponse.ColumnPoints = getSquareResponse.ColumnPoints
+
+	for _, footballSquare := range getFootballSquareGameByGameIDResponse.FootballSquares {
+		getGameResponse.FootballSquares = append(getGameResponse.FootballSquares, FootballSquare{
+			ColumnIndex:        footballSquare.ColumnIndex,
+			RowIndex:           footballSquare.RowIndex,
+			WinnerQuaterNumber: footballSquare.WinnerQuaterNumber,
+			Winner:             footballSquare.Winner,
+			UserGUID:           "",
+			UserAlias:          "",
+			UserName:           "",
+		})
+	}
 
 	return &getGameResponse, nil
 }
