@@ -24,8 +24,12 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@latest
-RUN go build -gcflags "all=-N -l" -o api main.go
+RUN go build -ldflags "-s -w" -o api main.go
+
+####Debug####
+#RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@latest
+#RUN go build -gcflags "all=-N -l" -o api main.go
+
 
 FROM build AS runtime
 
@@ -45,6 +49,7 @@ COPY --from=build --chown=${USER}:${USER} /api/ .
 
 USER ${USER}:${USER}
 
-#CMD ["./api"]
+CMD ["./api"]
 
-CMD [ "/go/bin/dlv", "--listen=:2101", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "./api" ]
+####Debug####
+#CMD [ "/go/bin/dlv", "--listen=:2101", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec", "./api" ]
