@@ -32,7 +32,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 	var createGameParams CreateGameParams
 	json.NewDecoder(request.Body).Decode(&createGameParams)
 
-	createSquareService := squareservices.CreateSquare{
+	createSquareService := squareservices.CreateSquareService{
 		SquareSize: int(createGameParams.SquareSize),
 		Sport:      createGameParams.Sport,
 	}
@@ -42,7 +42,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		return &createGameResponse, nil
 	}
 
-	createGameService := gameservices.CreateGame{
+	createGameService := gameservices.CreateGameService{
 		Sport:      createGameParams.Sport,
 		SquareSize: createGameParams.SquareSize,
 		TeamA:      createGameParams.TeamA,
@@ -54,7 +54,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		return &createGameResponse, nil
 	}
 
-	createFootballSquareGameService := footballsquaregameservices.CreateFootballSquareGame{
+	createFootballSquareGameService := footballsquaregameservices.CreateFootballSquareGameService{
 		GameID:     int(createGameServiceResponse.GameID),
 		SquareID:   createSquareServiceResponse.SquareID,
 		SquareSize: int(createGameParams.SquareSize),

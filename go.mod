@@ -2,7 +2,7 @@ module footballsquaregameservices
 
 go 1.22.2
 
-require github.com/longvu727/FootballSquaresLibs v0.0.0-20240627021514-f6123e4d9ac3
+require github.com/longvu727/FootballSquaresLibs v0.0.0-20240627181522-762ee2ced757
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
