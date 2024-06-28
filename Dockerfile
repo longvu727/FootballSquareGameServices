@@ -3,7 +3,6 @@ RUN apk add --no-cache git \
                 openssh-client \
                 ca-certificates
 
-ENV GOPRIVATE="github.com/longvu727/FootballSquaresLibs"
 RUN git config --global url."ssh://git@github.com/".insteadOf "https://github.com/"
 
 RUN mkdir -p /root/.ssh && \
@@ -11,8 +10,6 @@ RUN mkdir -p /root/.ssh && \
     ssh-keyscan gitlab.com > /root/.ssh/known_hosts &&\
     chmod 644 /root/.ssh/known_hosts && touch /root/.ssh/config \
     && echo "StrictHostKeyChecking no" > /root/.ssh/config
-
-COPY env/.ssh/id_* /root/.ssh/
 
 ENV GOOS=linux GOARCH=amd64
 
