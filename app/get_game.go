@@ -2,10 +2,12 @@ package app
 
 import (
 	"encoding/json"
+	"log"
 
 	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
 	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
 	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
+	userservices "github.com/longvu727/FootballSquaresLibs/services/user_microservices"
 	"github.com/longvu727/FootballSquaresLibs/util"
 )
 
@@ -80,15 +82,29 @@ func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*G
 	getGameResponse.ColumnPoints = getSquareResponse.ColumnPoints
 
 	for _, footballSquare := range getFootballSquareGameByGameIDResponse.FootballSquares {
-		getGameResponse.FootballSquares = append(getGameResponse.FootballSquares, FootballSquare{
+
+		square := FootballSquare{
 			ColumnIndex:        footballSquare.ColumnIndex,
 			RowIndex:           footballSquare.RowIndex,
 			WinnerQuaterNumber: footballSquare.WinnerQuaterNumber,
 			Winner:             footballSquare.Winner,
-			UserGUID:           "",
-			UserAlias:          "",
-			UserName:           "",
-		})
+		}
+
+		if footballSquare.UserID > 0 {
+			getUserService := userservices.GetUserService{
+				UserID: int(footballSquare.UserID),
+			}
+			getUserResponse, err := getUserService.Request(config)
+			if err != nil {
+				log.Printf("unable to find user, user_id: %d, error: %s", footballSquare.UserID, err.Error())
+			} else {
+				square.UserGUID = getUserResponse.UserGUID
+				square.UserAlias = getUserResponse.Alias
+				square.UserName = getUserResponse.UserName
+			}
+		}
+
+		getGameResponse.FootballSquares = append(getGameResponse.FootballSquares, square)
 	}
 
 	return &getGameResponse, nil

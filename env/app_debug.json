@@ -3,6 +3,7 @@
     "microservices": {
         "squaremicroservices": "http://localhost:3000",
         "footballsquaregamemicroservices": "http://localhost:3001",
-        "gamemicroservices": "http://localhost:3002"
+        "gamemicroservices": "http://localhost:3002",
+        "usermicroservices": "http://localhost:3003"
     }
 }
