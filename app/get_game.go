@@ -8,7 +8,7 @@ import (
 	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
 	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
 	userservices "github.com/longvu727/FootballSquaresLibs/services/user_microservices"
-	"github.com/longvu727/FootballSquaresLibs/util"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
 type GetGameParams struct {
@@ -47,11 +47,11 @@ func (response GetGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*GetGameResponse, error) {
+func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGameParams GetGameParams, resources *resources.Resources) (*GetGameResponse, error) {
 	var getGameResponse GetGameResponse
 
 	getGameByGUID := gameservices.GetGameByGUIDService{GameGUID: getGameParams.GameGUID}
-	getGameByGUIDResponse, err := getGameByGUID.Request(config)
+	getGameByGUIDResponse, err := getGameByGUID.Request(&resources.Config)
 	if err != nil {
 		return &getGameResponse, nil
 	}
@@ -59,7 +59,7 @@ func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*G
 	getFootballSquareGameByGameIDService := footballsquaregameservices.GetFootballSquareGameByGameIDService{
 		GameID: int(getGameByGUIDResponse.GameID),
 	}
-	getFootballSquareGameByGameIDResponse, err := getFootballSquareGameByGameIDService.Request(config)
+	getFootballSquareGameByGameIDResponse, err := getFootballSquareGameByGameIDService.Request(&resources.Config)
 	if err != nil || len(getFootballSquareGameByGameIDResponse.FootballSquares) == 0 {
 		return &getGameResponse, nil
 	}
@@ -67,7 +67,7 @@ func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*G
 	getSquareService := squareservices.GetSquareService{
 		SquareID: int(getFootballSquareGameByGameIDResponse.FootballSquares[0].SquareID),
 	}
-	getSquareResponse, err := getSquareService.Request(config)
+	getSquareResponse, err := getSquareService.Request(&resources.Config)
 	if err != nil {
 		return &getGameResponse, nil
 	}
@@ -94,7 +94,7 @@ func GetFootballSquareGame(getGameParams GetGameParams, config *util.Config) (*G
 			getUserService := userservices.GetUserService{
 				UserID: int(footballSquare.UserID),
 			}
-			getUserResponse, err := getUserService.Request(config)
+			getUserResponse, err := getUserService.Request(&resources.Config)
 			if err != nil {
 				log.Printf("unable to find user, user_id: %d, error: %s", footballSquare.UserID, err.Error())
 			} else {

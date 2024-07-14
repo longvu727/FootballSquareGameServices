@@ -2,12 +2,11 @@ package app
 
 import (
 	"encoding/json"
-	"net/http"
 
 	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
 	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
 	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
-	"github.com/longvu727/FootballSquaresLibs/util"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
 type CreateGameParams struct {
@@ -26,18 +25,15 @@ func (response CreateGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func CreateFootballSquareGame(request *http.Request, config *util.Config) (*CreateGameResponse, error) {
+func (footballSquareGameApp *FootballSquareGameApp) CreateFootballSquareGame(createGameParams CreateGameParams, resources *resources.Resources) (*CreateGameResponse, error) {
 	var createGameResponse CreateGameResponse
-
-	var createGameParams CreateGameParams
-	json.NewDecoder(request.Body).Decode(&createGameParams)
 
 	createSquareService := squareservices.CreateSquareService{
 		SquareSize: int(createGameParams.SquareSize),
 		Sport:      createGameParams.Sport,
 	}
 
-	createSquareServiceResponse, err := createSquareService.Request(config)
+	createSquareServiceResponse, err := createSquareService.Request(&resources.Config)
 	if err != nil {
 		return &createGameResponse, nil
 	}
@@ -49,7 +45,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		TeamB:      createGameParams.TeamB,
 	}
 
-	createGameServiceResponse, err := createGameService.Request(config)
+	createGameServiceResponse, err := createGameService.Request(&resources.Config)
 	if err != nil {
 		return &createGameResponse, nil
 	}
@@ -60,7 +56,7 @@ func CreateFootballSquareGame(request *http.Request, config *util.Config) (*Crea
 		SquareSize: int(createGameParams.SquareSize),
 	}
 
-	_, err = createFootballSquareGameService.Request(config)
+	_, err = createFootballSquareGameService.Request(&resources.Config)
 	if err != nil {
 		return &createGameResponse, nil
 	}
