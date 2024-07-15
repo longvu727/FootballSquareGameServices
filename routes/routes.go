@@ -43,7 +43,19 @@ func (routes *Routes) Register(resources *resources.Resources) *http.ServeMux {
 
 	for route, handler := range routesHandlersMap {
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-			handler(w, r, resources)
+			headers := w.Header()
+			headers.Add("Access-Control-Allow-Origin", "*")
+			headers.Add("Vary", "Origin")
+			headers.Add("Vary", "Access-Control-Request-Method")
+			headers.Add("Vary", "Access-Control-Request-Headers")
+			headers.Add("Access-Control-Allow-Headers", "Content-Type, Origin, Accept, token")
+			headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				handler(w, r, resources)
+			}
 		})
 	}
 
@@ -74,6 +86,7 @@ func (routes *Routes) createGame(writer http.ResponseWriter, request *http.Reque
 
 	responseStr, _ := json.Marshal(response)
 
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(responseStr)
 }
@@ -129,6 +142,9 @@ func (routes *Routes) reserveSquares(writer http.ResponseWriter, request *http.R
 	}
 
 	responseStr, _ := json.Marshal(response)
+
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(responseStr)
