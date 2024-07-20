@@ -14,7 +14,7 @@ type WebSocketHandler = func(writer http.ResponseWriter, request *http.Request, 
 
 func (routes *Routes) registerWebSocketRoutes(mux *http.ServeMux, resources *resources.Resources) {
 	routesHandlersMap := map[string]WebSocketHandler{
-		"GET /GetGameWebSocket/{game_guid}": routes.getGameWebSocket,
+		"GET /Subscribe/Game/{game_guid}": routes.SubscribeGame,
 	}
 
 	upgrader := websocket.Upgrader{
@@ -29,7 +29,7 @@ func (routes *Routes) registerWebSocketRoutes(mux *http.ServeMux, resources *res
 
 }
 
-func (routes *Routes) getGameWebSocket(writer http.ResponseWriter, request *http.Request, resources *resources.Resources, upgrader websocket.Upgrader) {
+func (routes *Routes) SubscribeGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources, upgrader websocket.Upgrader) {
 	log.Printf("Received websocket request for %s\n", request.URL.Path)
 
 	connection, err := upgrader.Upgrade(writer, request, nil)
