@@ -1,4 +1,4 @@
-package routes
+package httproutes
 
 import (
 	"encoding/json"
@@ -12,7 +12,21 @@ import (
 
 type HttpHandler = func(writer http.ResponseWriter, request *http.Request, resources *resources.Resources)
 
-func (routes *Routes) registerHttpRoutes(mux *http.ServeMux, resources *resources.Resources) {
+type HTTPRoutesInterface interface {
+	Register(mux *http.ServeMux, resources *resources.Resources)
+}
+
+type HTTPRoutes struct {
+	Apps app.FootballSquareGame
+}
+
+func NewHTTPRoutes(app app.FootballSquareGame) HTTPRoutesInterface {
+	return &HTTPRoutes{
+		Apps: app,
+	}
+}
+
+func (routes *HTTPRoutes) Register(mux *http.ServeMux, resources *resources.Resources) {
 	routesHandlersMap := map[string]HttpHandler{
 		"/":                        routes.home,
 		"POST /CreateGame":         routes.createGame,
@@ -43,11 +57,11 @@ func (routes *Routes) registerHttpRoutes(mux *http.ServeMux, resources *resource
 	}
 }
 
-func (routes *Routes) home(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) home(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	fmt.Fprintf(writer, "{\"Acknowledged\": true}")
 }
 
-func (routes *Routes) createGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) createGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	var createGameParams app.CreateGameParams
@@ -72,7 +86,7 @@ func (routes *Routes) createGame(writer http.ResponseWriter, request *http.Reque
 	writer.Write(responseStr)
 }
 
-func (routes *Routes) getGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) getGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	getGameParams := app.GetGameParams{
@@ -98,13 +112,13 @@ func (routes *Routes) getGame(writer http.ResponseWriter, request *http.Request,
 	writer.Write(responseStr)
 }
 
-func (routes *Routes) getEmptySquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) getEmptySquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("getEmptySquares Service Acknowledged"))
 }
 
-func (routes *Routes) reserveSquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) reserveSquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	var reserveSquareParams app.ReserveSquareParams
@@ -131,18 +145,18 @@ func (routes *Routes) reserveSquares(writer http.ResponseWriter, request *http.R
 	writer.Write(responseStr)
 }
 
-func (routes *Routes) saveSquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) saveSquares(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("Save Service Acknowledged"))
 }
 
-func (routes *Routes) deleteSquare(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) deleteSquare(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("deleteSquare Service Acknowledged"))
 }
-func (routes *Routes) generateNumber(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
+func (routes *HTTPRoutes) generateNumber(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write([]byte("GenerateNumber Service Acknowledged"))

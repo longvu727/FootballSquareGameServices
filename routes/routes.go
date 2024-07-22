@@ -2,6 +2,8 @@ package routes
 
 import (
 	"footballsquaregameservices/app"
+	httproutes "footballsquaregameservices/routes/http"
+	websocketroutes "footballsquaregameservices/routes/websocket"
 	"log"
 	"net/http"
 
@@ -26,8 +28,11 @@ func (routes *Routes) Register(resources *resources.Resources) *http.ServeMux {
 	log.Println("Registering routes")
 	mux := http.NewServeMux()
 
-	routes.registerHttpRoutes(mux, resources)
-	routes.registerWebSocketRoutes(mux, resources)
+	httpRoutes := httproutes.NewHTTPRoutes(routes.Apps)
+	httpRoutes.Register(mux, resources)
+
+	websocketRoutes := websocketroutes.NewWebSocketRoutes(routes.Apps)
+	websocketRoutes.Register(mux, resources)
 
 	return mux
 }
