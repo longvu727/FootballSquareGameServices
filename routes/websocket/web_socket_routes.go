@@ -32,7 +32,7 @@ func (routes *WebSocketRoutes) Register(mux *http.ServeMux, resources *resources
 
 	socketConnectionsPool := newSocketConnectionsPool()
 
-	mux.HandleFunc("GET /Subscribe/Game/{game_guid}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /Subscribe/GetGame/{game_guid}", func(w http.ResponseWriter, r *http.Request) {
 		routes.SubscribeGame(w, r, resources, upgrader, socketConnectionsPool)
 	})
 }
