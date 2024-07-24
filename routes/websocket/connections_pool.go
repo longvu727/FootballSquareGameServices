@@ -54,7 +54,9 @@ func (connections *socketConnectionsPool) broadcastGame() {
 		subscribeGameBroadcastData := <-connections.SubscribeGame.broadcast
 		log.Println("Broadcasted")
 
-		for connection := range connections.SubscribeGame.gameGUIDConnections[subscribeGameBroadcastData.gameGUID] {
+		conns, _ := connections.getConnectionsByGameGUID(subscribeGameBroadcastData.gameGUID)
+
+		for connection := range conns {
 			err := connection.WriteJSON(subscribeGameBroadcastData.getFootballSquareGameResponse)
 			if err != nil {
 				log.Println(err)

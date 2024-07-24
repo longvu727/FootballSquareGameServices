@@ -10,6 +10,7 @@ import (
 	"github.com/longvu727/FootballSquaresLibs/DB/db"
 	"github.com/longvu727/FootballSquaresLibs/util"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
+	"github.com/redis/go-redis/v9"
 )
 
 type api struct {
@@ -38,6 +39,11 @@ func getResourcesFromConfigFile(path string, configName string, configType strin
 	if err != nil {
 		return nil, err
 	}
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     config.REDISURL,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	mysql, err := db.NewMySQL(config)
 	if err != nil {
@@ -45,7 +51,9 @@ func getResourcesFromConfigFile(path string, configName string, configType strin
 	}
 
 	ctx := context.Background()
+
 	resources := resources.NewResources(config, mysql, ctx)
+	resources.RedisClient = redisClient
 
 	return resources, nil
 }

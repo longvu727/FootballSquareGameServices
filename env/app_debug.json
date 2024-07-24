@@ -1,5 +1,6 @@
 {
     "PORT": 3101,
+    "REDIS_URL": "localhost:6379",
     "microservices": {
         "squaremicroservices": "http://localhost:3000",
         "footballsquaregamemicroservices": "http://localhost:3001",

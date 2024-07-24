@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
+	"github.com/redis/go-redis/v9"
 )
 
 type WebSocketRoutesInterface interface {
@@ -69,7 +70,10 @@ func (routes *WebSocketRoutes) SubscribeGame(
 		gameGUID: gameGUID,
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
+	oldTime := time.Now()
+	newTime := time.Now()
+
+	ticker := time.NewTicker(500 * time.Millisecond)
 	for range ticker.C {
 
 		log.Println("Ticked, GameGUID " + gameGUID)
@@ -86,6 +90,29 @@ func (routes *WebSocketRoutes) SubscribeGame(
 		subscribeGameBroadcastData.getFootballSquareGameResponse = *response
 
 		connections.SubscribeGame.broadcast <- subscribeGameBroadcastData
+
+		for newTime.Equal(oldTime) {
+			tempTime := routes.getSquareReservedTime(resources, gameGUID)
+			if tempTime != nil {
+				newTime = *tempTime
+			}
+		}
+		oldTime = newTime
 	}
+
+}
+
+func (routes *WebSocketRoutes) getSquareReservedTime(resources *resources.Resources, gameGUID string) *time.Time {
+	redisKey := "SquareReserved:" + gameGUID
+
+	cachedResponseStr, err := resources.RedisClient.Get(resources.Context, redisKey).Result()
+
+	if err == redis.Nil || err != nil {
+		return nil
+	}
+
+	squareReservedTime, _ := time.Parse(time.UnixDate, cachedResponseStr)
+
+	return &squareReservedTime
 
 }
