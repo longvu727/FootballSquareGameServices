@@ -6,10 +6,8 @@ import (
 	"footballsquaregameservices/app"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
-	"github.com/redis/go-redis/v9"
 )
 
 type HttpHandler = func(writer http.ResponseWriter, request *http.Request, resources *resources.Resources)
@@ -166,35 +164,7 @@ func (routes *HTTPRoutes) generateNumber(writer http.ResponseWriter, request *ht
 	writer.Write([]byte("GenerateNumber Service Acknowledged"))
 }
 
-func (routes *HTTPRoutes) getGetGameCacheKey(gameGUID string) string {
-	return "getGame:" + gameGUID
-}
-
 func (routes *HTTPRoutes) recordSquareReservedTime(gameGUID string, resources *resources.Resources) error {
-	redisKey := "SquareReserved:" + gameGUID
-	return resources.RedisClient.Set(resources.Context, redisKey, time.Now().Format(time.UnixDate), time.Hour).Err()
-}
-
-func (routes *HTTPRoutes) cacheGetGameResponse(gameGUID string, resources *resources.Resources, responseStr string) error {
-	redisKey := routes.getGetGameCacheKey(gameGUID)
-	return resources.RedisClient.Set(resources.Context, redisKey, responseStr, time.Hour).Err()
-
-}
-
-func (routes *HTTPRoutes) getGameFromCache(gameGUID string, resources *resources.Resources) (string, error) {
-	redisKey := routes.getGetGameCacheKey(gameGUID)
-	cachedResponseStr, err := resources.RedisClient.Get(resources.Context, redisKey).Result()
-
-	if err == redis.Nil {
-		return "", nil
-	} else if err != redis.Nil {
-		return "", err
-	}
-
-	return cachedResponseStr, err
-}
-
-func (routes *HTTPRoutes) removeGetGameCache(gameGUID string, resources *resources.Resources) error {
-	redisKey := routes.getGetGameCacheKey(gameGUID)
-	return resources.RedisClient.Del(resources.Context, redisKey).Err()
+	redisError := resources.RedisClient.Publish(resources.Context, "SquareReserved:"+gameGUID, "SquareReserved")
+	return redisError.Err()
 }

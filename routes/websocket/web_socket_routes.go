@@ -5,11 +5,9 @@ import (
 	"footballsquaregameservices/app"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
-	"github.com/redis/go-redis/v9"
 )
 
 type WebSocketRoutesInterface interface {
@@ -31,11 +29,8 @@ func (routes *WebSocketRoutes) Register(mux *http.ServeMux, resources *resources
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
 
-	socketConnectionsPool := newSocketConnectionsPool(resources)
-	go routes.broadcastGame(socketConnectionsPool)
-
 	mux.HandleFunc("GET /Subscribe/GetGame/{game_guid}", func(w http.ResponseWriter, r *http.Request) {
-		routes.SubscribeGame(w, r, resources, upgrader, socketConnectionsPool)
+		routes.SubscribeGame(w, r, resources, upgrader)
 	})
 }
 
@@ -44,7 +39,6 @@ func (routes *WebSocketRoutes) SubscribeGame(
 	request *http.Request,
 	resources *resources.Resources,
 	upgrader websocket.Upgrader,
-	connections *socketConnectionsPool,
 ) {
 
 	log.Printf("Received websocket request for %s\n", request.URL.Path)
@@ -54,84 +48,48 @@ func (routes *WebSocketRoutes) SubscribeGame(
 		log.Println("upgrade:", err)
 		return
 	}
-
 	defer connection.Close()
 
 	gameGUID := request.PathValue("game_guid")
-	getGameParams := app.GetGameParams{
-		GameGUID: gameGUID,
+
+	squareReservedChannel := resources.RedisClient.Subscribe(resources.Context, "SquareReserved:"+gameGUID)
+	defer squareReservedChannel.Close()
+
+	subscribeGameChannel := resources.RedisClient.Subscribe(resources.Context, "SubscribeGame:"+gameGUID)
+	defer subscribeGameChannel.Close()
+
+	response, err := routes.Apps.GetFootballSquareGame(app.GetGameParams{GameGUID: gameGUID}, resources)
+	if err != nil {
+		return
 	}
 
-	if _, ok := connections.getConnectionsByGameGUID(gameGUID); !ok {
-		connections.newGameGUIDConnections(gameGUID)
-	}
-	connections.addGameGUIDConnection(gameGUID, connection)
-
-	subscribeGameBroadcastData := subscribeGameBroadcastData{
-		gameGUID: gameGUID,
+	if err := connection.WriteJSON(response); err != nil {
+		return
 	}
 
-	oldTime := time.Now()
-	newTime := time.Now()
-
-	ticker := time.NewTicker(500 * time.Millisecond)
-	for range ticker.C {
-
-		log.Println("Ticked, GameGUID " + gameGUID)
-
-		response, err := routes.Apps.GetFootballSquareGame(getGameParams, resources)
-		if err != nil {
-			connection.Close()
-		}
-
-		jsonStr, _ := json.Marshal(response)
-
-		log.Println(string(jsonStr))
-
-		subscribeGameBroadcastData.getFootballSquareGameResponse = *response
-
-		connections.SubscribeGame.broadcast <- subscribeGameBroadcastData
-
-		for newTime.Equal(oldTime) {
-			tempTime := routes.getSquareReservedTime(resources, gameGUID)
-			if tempTime != nil {
-				newTime = *tempTime
-			}
-		}
-		oldTime = newTime
-	}
-
-}
-
-func (routes *WebSocketRoutes) broadcastGame(connections *socketConnectionsPool) {
-	for {
-		subscribeGameBroadcastData := <-connections.SubscribeGame.broadcast
-		log.Println("Broadcasted")
-
-		conns, _ := connections.getConnectionsByGameGUID(subscribeGameBroadcastData.gameGUID)
-
-		for connection := range conns {
-			err := connection.WriteJSON(subscribeGameBroadcastData.getFootballSquareGameResponse)
+	go func() {
+		for {
+			_, err := squareReservedChannel.ReceiveMessage(resources.Context)
 			if err != nil {
-				log.Println(err)
-				connection.Close()
-				delete(connections.SubscribeGame.gameGUIDConnections[subscribeGameBroadcastData.gameGUID], connection)
+				log.Println("SquareReservedChannel receive message error: " + err.Error())
+			}
+
+			response, err := routes.Apps.GetFootballSquareGame(app.GetGameParams{GameGUID: gameGUID}, resources)
+			if err != nil {
+				return
+			}
+
+			responseJSON, _ := json.Marshal(response)
+
+			if err := resources.RedisClient.Publish(resources.Context, "SubscribeGame:"+gameGUID, responseJSON); err != nil {
+				log.Println("SquareReservedChannel Publish error:", err)
 			}
 		}
+	}()
+
+	for msg := range subscribeGameChannel.Channel() {
+		if err := connection.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
+			return
+		}
 	}
-}
-
-func (routes *WebSocketRoutes) getSquareReservedTime(resources *resources.Resources, gameGUID string) *time.Time {
-	redisKey := "SquareReserved:" + gameGUID
-
-	cachedResponseStr, err := resources.RedisClient.Get(resources.Context, redisKey).Result()
-
-	if err == redis.Nil || err != nil {
-		return nil
-	}
-
-	squareReservedTime, _ := time.Parse(time.UnixDate, cachedResponseStr)
-
-	return &squareReservedTime
-
 }
