@@ -31,7 +31,8 @@ func (routes *WebSocketRoutes) Register(mux *http.ServeMux, resources *resources
 		CheckOrigin: func(r *http.Request) bool { return true },
 	}
 
-	socketConnectionsPool := newSocketConnectionsPool()
+	socketConnectionsPool := newSocketConnectionsPool(resources)
+	go routes.broadcastGame(socketConnectionsPool)
 
 	mux.HandleFunc("GET /Subscribe/GetGame/{game_guid}", func(w http.ResponseWriter, r *http.Request) {
 		routes.SubscribeGame(w, r, resources, upgrader, socketConnectionsPool)
@@ -100,6 +101,24 @@ func (routes *WebSocketRoutes) SubscribeGame(
 		oldTime = newTime
 	}
 
+}
+
+func (routes *WebSocketRoutes) broadcastGame(connections *socketConnectionsPool) {
+	for {
+		subscribeGameBroadcastData := <-connections.SubscribeGame.broadcast
+		log.Println("Broadcasted")
+
+		conns, _ := connections.getConnectionsByGameGUID(subscribeGameBroadcastData.gameGUID)
+
+		for connection := range conns {
+			err := connection.WriteJSON(subscribeGameBroadcastData.getFootballSquareGameResponse)
+			if err != nil {
+				log.Println(err)
+				connection.Close()
+				delete(connections.SubscribeGame.gameGUIDConnections[subscribeGameBroadcastData.gameGUID], connection)
+			}
+		}
+	}
 }
 
 func (routes *WebSocketRoutes) getSquareReservedTime(resources *resources.Resources, gameGUID string) *time.Time {

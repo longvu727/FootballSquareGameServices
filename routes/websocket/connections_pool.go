@@ -2,9 +2,9 @@ package websocketroutes
 
 import (
 	"footballsquaregameservices/app"
-	"log"
 
 	"github.com/gorilla/websocket"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
 type subscribeGameBroadcastData struct {
@@ -21,20 +21,26 @@ type subscribeGameConnections struct {
 
 type socketConnectionsPool struct {
 	SubscribeGame subscribeGameConnections
+	resources     *resources.Resources
 }
 
-func newSocketConnectionsPool() *socketConnectionsPool {
+func newSocketConnectionsPool(resources *resources.Resources) *socketConnectionsPool {
 	socketConnectionsPool := &socketConnectionsPool{
 		SubscribeGame: subscribeGameConnections{
 			gameGUIDConnections: make(map[string]gameConnections),
 			broadcast:           make(chan subscribeGameBroadcastData),
 		},
+		resources: resources,
 	}
 
-	go socketConnectionsPool.broadcastGame()
 	return socketConnectionsPool
 }
 
+/*func (routes *HTTPRoutes) cacheGetGameResponse(gameGUID string, resources *resources.Resources, responseStr string) error {
+	redisKey := routes.getGetGameCacheKey(gameGUID)
+	return resources.RedisClient.Set(resources.Context, redisKey, responseStr, time.Hour).Err()
+}
+*/
 func (connections *socketConnectionsPool) getConnectionsByGameGUID(gameGUID string) (gameConnections, bool) {
 	gameConnections, ok := connections.SubscribeGame.gameGUIDConnections[gameGUID]
 
@@ -47,22 +53,4 @@ func (connections *socketConnectionsPool) newGameGUIDConnections(gameGUID string
 
 func (connections *socketConnectionsPool) addGameGUIDConnection(gameGUID string, connection *websocket.Conn) {
 	connections.SubscribeGame.gameGUIDConnections[gameGUID][connection] = true
-}
-
-func (connections *socketConnectionsPool) broadcastGame() {
-	for {
-		subscribeGameBroadcastData := <-connections.SubscribeGame.broadcast
-		log.Println("Broadcasted")
-
-		conns, _ := connections.getConnectionsByGameGUID(subscribeGameBroadcastData.gameGUID)
-
-		for connection := range conns {
-			err := connection.WriteJSON(subscribeGameBroadcastData.getFootballSquareGameResponse)
-			if err != nil {
-				log.Println(err)
-				connection.Close()
-				delete(connections.SubscribeGame.gameGUIDConnections[subscribeGameBroadcastData.gameGUID], connection)
-			}
-		}
-	}
 }
