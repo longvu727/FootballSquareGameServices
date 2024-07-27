@@ -3,9 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
-	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
-	userservices "github.com/longvu727/FootballSquaresLibs/services/user_microservices"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
@@ -28,28 +26,28 @@ func (response ReserveSquareResponse) ToJson() []byte {
 func (footballSquareGameApp *FootballSquareGameApp) ReserveSquare(reserveSquareParams ReserveSquareParams, resources *resources.Resources) (*ReserveSquareResponse, error) {
 	reserveSquareResponse := &ReserveSquareResponse{Reserved: false}
 
-	getGameByGUID := gameservices.GetGameByGUIDService{GameGUID: reserveSquareParams.GameGUID}
-	getGameByGUIDResponse, err := getGameByGUID.Request(&resources.Config)
+	getGameByGUIDRequest := services.GetGameByGUIDRequest{GameGUID: reserveSquareParams.GameGUID}
+	getGameByGUIDResponse, err := resources.Services.GetGameByGUID(&resources.Config, getGameByGUIDRequest)
 	if err != nil {
 		reserveSquareResponse.ErrorMessage = "unable to find game"
 		return reserveSquareResponse, err
 	}
 
-	getUserByGUID := userservices.GetUserByGUIDService{UserGUID: reserveSquareParams.UserGUID}
-	getUserByGUIDResponse, err := getUserByGUID.Request(&resources.Config)
+	getUserByGUIDRequest := services.GetUserByGUIDRequest{UserGUID: reserveSquareParams.UserGUID}
+	getUserByGUIDResponse, err := resources.Services.GetUserByGUID(&resources.Config, getUserByGUIDRequest)
 	if err != nil {
 		reserveSquareResponse.ErrorMessage = "unable to find user"
 		return reserveSquareResponse, err
 	}
 
-	reserveSquare := footballsquaregameservices.ReserveFootballSquareService{
+	reserveSquareRequest := services.ReserveFootballSquareRequest{
 		GameID:      int(getGameByGUIDResponse.GameID),
 		UserID:      int(getUserByGUIDResponse.UserID),
 		RowIndex:    reserveSquareParams.RowIndex,
 		ColumnIndex: reserveSquareParams.ColumnIndex,
 	}
 
-	_, err = reserveSquare.Request(&resources.Config)
+	_, err = resources.Services.ReserveFootballSquare(&resources.Config, reserveSquareRequest)
 	if err != nil {
 		reserveSquareResponse.ErrorMessage = "unable to reserve square"
 		return reserveSquareResponse, err

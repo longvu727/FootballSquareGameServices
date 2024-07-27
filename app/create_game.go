@@ -3,9 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
-	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
-	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
@@ -28,35 +26,35 @@ func (response CreateGameResponse) ToJson() []byte {
 func (footballSquareGameApp *FootballSquareGameApp) CreateFootballSquareGame(createGameParams CreateGameParams, resources *resources.Resources) (*CreateGameResponse, error) {
 	var createGameResponse CreateGameResponse
 
-	createSquareService := squareservices.CreateSquareService{
+	createSquareRequest := services.CreateSquareRequest{
 		SquareSize: int(createGameParams.SquareSize),
 		Sport:      createGameParams.Sport,
 	}
 
-	createSquareServiceResponse, err := createSquareService.Request(&resources.Config)
+	createSquareServiceResponse, err := resources.Services.CreateSquare(&resources.Config, createSquareRequest)
 	if err != nil {
 		return &createGameResponse, nil
 	}
 
-	createGameService := gameservices.CreateGameService{
+	createGameRequest := services.CreateGameRequest{
 		Sport:      createGameParams.Sport,
 		SquareSize: createGameParams.SquareSize,
 		TeamA:      createGameParams.TeamA,
 		TeamB:      createGameParams.TeamB,
 	}
 
-	createGameServiceResponse, err := createGameService.Request(&resources.Config)
+	createGameServiceResponse, err := resources.Services.CreateGame(&resources.Config, createGameRequest)
 	if err != nil {
 		return &createGameResponse, nil
 	}
 
-	createFootballSquareGameService := footballsquaregameservices.CreateFootballSquareGameService{
+	createFootballSquareGameRequest := services.CreateFootballSquareGameRequest{
 		GameID:     int(createGameServiceResponse.GameID),
 		SquareID:   createSquareServiceResponse.SquareID,
 		SquareSize: int(createGameParams.SquareSize),
 	}
 
-	_, err = createFootballSquareGameService.Request(&resources.Config)
+	_, err = resources.Services.CreateFootballSquareGame(&resources.Config, createFootballSquareGameRequest)
 	if err != nil {
 		return &createGameResponse, nil
 	}

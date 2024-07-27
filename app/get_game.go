@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
-	footballsquaregameservices "github.com/longvu727/FootballSquaresLibs/services/football_square_game_microservices"
-	gameservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
-	squareservices "github.com/longvu727/FootballSquaresLibs/services/square_microservices"
-	userservices "github.com/longvu727/FootballSquaresLibs/services/user_microservices"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
@@ -50,24 +47,24 @@ func (response GetGameResponse) ToJson() []byte {
 func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGameParams GetGameParams, resources *resources.Resources) (*GetGameResponse, error) {
 	var getGameResponse GetGameResponse
 
-	getGameByGUID := gameservices.GetGameByGUIDService{GameGUID: getGameParams.GameGUID}
-	getGameByGUIDResponse, err := getGameByGUID.Request(&resources.Config)
+	getGameByGUIDRequest := services.GetGameByGUIDRequest{GameGUID: getGameParams.GameGUID}
+	getGameByGUIDResponse, err := resources.Services.GetGameByGUID(&resources.Config, getGameByGUIDRequest)
 	if err != nil {
 		return &getGameResponse, nil
 	}
 
-	getFootballSquareGameByGameIDService := footballsquaregameservices.GetFootballSquareGameByGameIDService{
+	getFootballSquareGameByGameIDRequest := services.GetFootballSquareGameByGameIDRequest{
 		GameID: int(getGameByGUIDResponse.GameID),
 	}
-	getFootballSquareGameByGameIDResponse, err := getFootballSquareGameByGameIDService.Request(&resources.Config)
+	getFootballSquareGameByGameIDResponse, err := resources.Services.GetFootballSquareGameByGameID(&resources.Config, getFootballSquareGameByGameIDRequest)
 	if err != nil || len(getFootballSquareGameByGameIDResponse.FootballSquares) == 0 {
 		return &getGameResponse, nil
 	}
 
-	getSquareService := squareservices.GetSquareService{
+	getSquareRequest := services.GetSquareRequest{
 		SquareID: int(getFootballSquareGameByGameIDResponse.FootballSquares[0].SquareID),
 	}
-	getSquareResponse, err := getSquareService.Request(&resources.Config)
+	getSquareResponse, err := resources.Services.GetSquare(&resources.Config, getSquareRequest)
 	if err != nil {
 		return &getGameResponse, nil
 	}
@@ -91,10 +88,10 @@ func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGam
 		}
 
 		if footballSquare.UserID > 0 {
-			getUserService := userservices.GetUserService{
+			getUserRequest := services.GetUserRequest{
 				UserID: int(footballSquare.UserID),
 			}
-			getUserResponse, err := getUserService.Request(&resources.Config)
+			getUserResponse, err := resources.Services.GetUser(&resources.Config, getUserRequest)
 			if err != nil {
 				log.Printf("unable to find user, user_id: %d, error: %s", footballSquare.UserID, err.Error())
 			} else {
