@@ -15,7 +15,7 @@ type GetGameParams struct {
 type FootballSquare struct {
 	ColumnIndex        int    `json:"column_index"`
 	RowIndex           int    `json:"row_index"`
-	WinnerQuaterNumber int    `json:"winner_quater_number"`
+	WinnerQuarterNumber int    `json:"winner_quarter_number"`
 	Winner             bool   `json:"winner"`
 	UserGUID           string `json:"user_guid"`
 	UserAlias          string `json:"user_alias"`
@@ -83,7 +83,7 @@ func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGam
 		square := FootballSquare{
 			ColumnIndex:        footballSquare.ColumnIndex,
 			RowIndex:           footballSquare.RowIndex,
-			WinnerQuaterNumber: footballSquare.WinnerQuaterNumber,
+			WinnerQuarterNumber: footballSquare.WinnerQuarterNumber,
 			Winner:             footballSquare.Winner,
 		}
 

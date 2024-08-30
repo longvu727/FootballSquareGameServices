@@ -56,12 +56,16 @@ github.com/longvu727/FootballSquaresLibs v0.0.0-20240727000753-942761a1ddf5 h1:6
 github.com/longvu727/FootballSquaresLibs v0.0.0-20240727000753-942761a1ddf5/go.mod h1:FTvn+hIwFTGKOIn7Y4AhghOl1CMjBrCQi4nde8Y6iPc=
 github.com/longvu727/FootballSquaresLibs v0.0.0-20240727001140-3a9a484a108b h1:67Y671NQfmhZScI5WiAA9Trvs+B8bj0I37eO0wUZ7yg=
 github.com/longvu727/FootballSquaresLibs v0.0.0-20240727001140-3a9a484a108b/go.mod h1:FTvn+hIwFTGKOIn7Y4AhghOl1CMjBrCQi4nde8Y6iPc=
+github.com/longvu727/FootballSquaresLibs v0.0.0-20240830222922-5b817199a18e h1:fVux4YBEzkjFOUIHkEmao0vbgQjMiivbFU+rukn9jfY=
+github.com/longvu727/FootballSquaresLibs v0.0.0-20240830222922-5b817199a18e/go.mod h1:cFZvlOBE+rVw0BJVFS0BgeAF7EQs52kwu31C4Hc4Yls=
 github.com/magiconair/properties v1.8.7 h1:IeQXZAiQcpL9mgcAe1Nu6cX9LLw6ExEHKjN0VQdvPDY=
 github.com/magiconair/properties v1.8.7/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=
 github.com/pelletier/go-toml/v2 v2.2.2/go.mod h1:1t835xjRzz80PqgE6HHgN2JOsmgYu/h4qDAS4n929Rs=
+github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=
+github.com/pelletier/go-toml/v2 v2.2.3/go.mod h1:MfCQTFTvCcUyyvvwm1+G6H/jORL20Xlb6rzQu9GuUkc=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
