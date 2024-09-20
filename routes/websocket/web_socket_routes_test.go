@@ -3,7 +3,6 @@ package websocketroutes
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"footballsquaregameservices/app"
 	mockfootballsquaregameapp "footballsquaregameservices/app/mock"
@@ -30,9 +29,11 @@ func TestWebsocketRoutesTestSuite(t *testing.T) {
 	suite.Run(t, new(WebsocketRoutesTestSuite))
 }
 
+/*
 func (suite *WebsocketRoutesTestSuite) getTestError() error {
 	return errors.New("test error")
 }
+*/
 
 func (suite *WebsocketRoutesTestSuite) TestSubscribeGame() {
 
