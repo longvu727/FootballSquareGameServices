@@ -33,7 +33,7 @@ func (footballSquareGameApp *FootballSquareGameApp) CreateFootballSquareGame(cre
 
 	createSquareServiceResponse, err := resources.Services.CreateSquare(&resources.Config, createSquareRequest)
 	if err != nil {
-		return &createGameResponse, nil
+		return &createGameResponse, err
 	}
 
 	createGameRequest := services.CreateGameRequest{
@@ -45,7 +45,7 @@ func (footballSquareGameApp *FootballSquareGameApp) CreateFootballSquareGame(cre
 
 	createGameServiceResponse, err := resources.Services.CreateGame(&resources.Config, createGameRequest)
 	if err != nil {
-		return &createGameResponse, nil
+		return &createGameResponse, err
 	}
 
 	createFootballSquareGameRequest := services.CreateFootballSquareGameRequest{
@@ -56,7 +56,7 @@ func (footballSquareGameApp *FootballSquareGameApp) CreateFootballSquareGame(cre
 
 	_, err = resources.Services.CreateFootballSquareGame(&resources.Config, createFootballSquareGameRequest)
 	if err != nil {
-		return &createGameResponse, nil
+		return &createGameResponse, err
 	}
 
 	createGameResponse.GameGUID = createGameServiceResponse.GameGUID

@@ -50,7 +50,7 @@ func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGam
 	getGameByGUIDRequest := services.GetGameByGUIDRequest{GameGUID: getGameParams.GameGUID}
 	getGameByGUIDResponse, err := resources.Services.GetGameByGUID(&resources.Config, getGameByGUIDRequest)
 	if err != nil {
-		return &getGameResponse, nil
+		return &getGameResponse, err
 	}
 
 	getFootballSquareGameByGameIDRequest := services.GetFootballSquareGameByGameIDRequest{
@@ -58,7 +58,7 @@ func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGam
 	}
 	getFootballSquareGameByGameIDResponse, err := resources.Services.GetFootballSquareGameByGameID(&resources.Config, getFootballSquareGameByGameIDRequest)
 	if err != nil || len(getFootballSquareGameByGameIDResponse.FootballSquares) == 0 {
-		return &getGameResponse, nil
+		return &getGameResponse, err
 	}
 
 	getSquareRequest := services.GetSquareRequest{
@@ -66,7 +66,7 @@ func (footballSquareGameApp *FootballSquareGameApp) GetFootballSquareGame(getGam
 	}
 	getSquareResponse, err := resources.Services.GetSquare(&resources.Config, getSquareRequest)
 	if err != nil {
-		return &getGameResponse, nil
+		return &getGameResponse, err
 	}
 
 	getGameResponse.GameGUID = getGameByGUIDResponse.GameGUID
