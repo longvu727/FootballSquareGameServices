@@ -63,10 +63,8 @@ func (routes *WebSocketRoutes) SubscribeGame(
 		return
 	}
 
-	if err := connection.WriteJSON(response); err != nil {
-		return
-	}
-
+	connection.WriteJSON(response)
+	
 	go func() {
 		for {
 			_, err := squareReservedChannel.ReceiveMessage(resources.Context)
@@ -81,7 +79,7 @@ func (routes *WebSocketRoutes) SubscribeGame(
 
 			responseJSON, _ := json.Marshal(response)
 
-			if err := resources.RedisClient.Publish(resources.Context, "SubscribeGame:"+gameGUID, responseJSON); err != nil {
+			if err := resources.RedisClient.Publish(resources.Context, "SubscribeGame:"+gameGUID, responseJSON).Err(); err != nil {
 				log.Println("SquareReservedChannel Publish error:", err)
 			}
 		}

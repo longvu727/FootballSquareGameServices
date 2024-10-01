@@ -165,6 +165,6 @@ func (routes *HTTPRoutes) generateNumber(writer http.ResponseWriter, request *ht
 }
 
 func (routes *HTTPRoutes) recordSquareReservedTime(gameGUID string, resources *resources.Resources) error {
-	redisError := resources.RedisClient.Publish(resources.Context, "SquareReserved:"+gameGUID, "SquareReserved")
-	return redisError.Err()
+	redisError := resources.RedisClient.Publish(resources.Context, "SquareReserved:"+gameGUID, "SquareReserved").Err()
+	return redisError
 }

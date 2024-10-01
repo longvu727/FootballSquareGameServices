@@ -3,6 +3,8 @@ package websocketroutes
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"footballsquaregameservices/app"
 	mockfootballsquaregameapp "footballsquaregameservices/app/mock"
@@ -12,11 +14,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-redis/redismock/v9"
+	"github.com/alicebob/miniredis/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/rand"
 )
@@ -29,11 +32,190 @@ func TestWebsocketRoutesTestSuite(t *testing.T) {
 	suite.Run(t, new(WebsocketRoutesTestSuite))
 }
 
-/*
 func (suite *WebsocketRoutesTestSuite) getTestError() error {
 	return errors.New("test error")
 }
-*/
+
+func (suite *WebsocketRoutesTestSuite) TestSubscribeGameUpgraderError() {
+
+	game := randomGetGameResponse()
+	url := "/Subscribe/GetGame/" + game.GameGUID
+
+	ctrl := gomock.NewController(suite.T())
+
+	mockFootballSquareGame := mockfootballsquaregameapp.NewMockFootballSquareGame(ctrl)
+
+	resources := resources.Resources{
+		Context: context.Background(),
+	}
+
+	serveMux := http.NewServeMux()
+	wsRoutes := NewWebSocketRoutes(mockFootballSquareGame)
+	wsRoutes.Register(serveMux, &resources)
+
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer([]byte{}))
+	suite.NoError(err)
+
+	httpRecorder := httptest.NewRecorder()
+
+	serveMux.ServeHTTP(httpRecorder, req)
+
+	_, _, err = websocket.DefaultDialer.Dial("ws://"+url, nil)
+	fmt.Println(err)
+	suite.Error(err)
+}
+
+func (suite *WebsocketRoutesTestSuite) TestSubscribeGameGetFootballSquareGameError() {
+
+	game := randomGetGameResponse()
+	url := "/Subscribe/GetGame/" + game.GameGUID
+
+	ctrl := gomock.NewController(suite.T())
+
+	mockFootballSquareGame := mockfootballsquaregameapp.NewMockFootballSquareGame(ctrl)
+	mockFootballSquareGame.EXPECT().
+		GetFootballSquareGame(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		Return(&app.GetGameResponse{}, suite.getTestError())
+
+	mRedis, err := miniredis.Run()
+	suite.NoError(err)
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     mRedis.Addr(),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	resources := resources.Resources{
+		RedisClient: redisClient,
+		Context:     context.Background(),
+	}
+
+	serveMux := http.NewServeMux()
+	wsRoutes := NewWebSocketRoutes(mockFootballSquareGame)
+	wsRoutes.Register(serveMux, &resources)
+
+	server := httptest.NewServer(serveMux)
+	defer server.Close()
+
+	wsUrl := "ws" + strings.TrimPrefix(server.URL, "http") + url
+
+	client, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
+	suite.NoError(err)
+	defer client.Close()
+
+	_, response, _ := client.ReadMessage()
+	suite.Equal("", string(response))
+}
+
+func (suite *WebsocketRoutesTestSuite) TestSubscribeGameSquareReservedReceiveMessageError() {
+
+	game := randomGetGameResponse()
+	url := "/Subscribe/GetGame/" + game.GameGUID
+
+	ctrl := gomock.NewController(suite.T())
+
+	mockFootballSquareGame := mockfootballsquaregameapp.NewMockFootballSquareGame(ctrl)
+	mockFootballSquareGame.EXPECT().
+		GetFootballSquareGame(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		Return(game, nil)
+
+	mRedis := miniredis.RunT(suite.T())
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     mRedis.Addr(),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	resources := resources.Resources{
+		RedisClient: redisClient,
+		Context:     context.Background(),
+	}
+
+	serveMux := http.NewServeMux()
+	wsRoutes := NewWebSocketRoutes(mockFootballSquareGame)
+	wsRoutes.Register(serveMux, &resources)
+
+	server := httptest.NewServer(serveMux)
+	defer server.Close()
+
+	wsUrl := "ws" + strings.TrimPrefix(server.URL, "http") + url
+
+	client, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
+	suite.NoError(err)
+	defer client.Close()
+
+	var gameResponse *app.GetGameResponse
+
+	_, response, _ := client.ReadMessage()
+	json.NewDecoder(bytes.NewReader(response)).Decode(&gameResponse)
+	suite.Equal(game, gameResponse)
+
+	err = redisClient.Publish(resources.Context, "SquareReserved:"+game.GameGUID+"NotEqual", "SquareReserved").Err()
+	suite.NoError(err)
+
+}
+
+func (suite *WebsocketRoutesTestSuite) TestSubscribeGameReloadFootballSquareGameError() {
+
+	game := randomGetGameResponse()
+	url := "/Subscribe/GetGame/" + game.GameGUID
+
+	ctrl := gomock.NewController(suite.T())
+
+	mockFootballSquareGame := mockfootballsquaregameapp.NewMockFootballSquareGame(ctrl)
+	mockFootballSquareGame.EXPECT().
+		GetFootballSquareGame(gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(game, nil)
+
+	mockFootballSquareGame.EXPECT().
+		GetFootballSquareGame(gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(&app.GetGameResponse{}, suite.getTestError())
+
+	mRedis, err := miniredis.Run()
+	suite.NoError(err)
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     mRedis.Addr(),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	resources := resources.Resources{
+		RedisClient: redisClient,
+		Context:     context.Background(),
+	}
+
+	serveMux := http.NewServeMux()
+	wsRoutes := NewWebSocketRoutes(mockFootballSquareGame)
+	wsRoutes.Register(serveMux, &resources)
+
+	server := httptest.NewServer(serveMux)
+	defer server.Close()
+
+	wsUrl := "ws" + strings.TrimPrefix(server.URL, "http") + url
+
+	client, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
+	suite.NoError(err)
+	defer client.Close()
+
+	var gameResponse *app.GetGameResponse
+
+	_, response, _ := client.ReadMessage()
+	json.NewDecoder(bytes.NewReader(response)).Decode(&gameResponse)
+	suite.Equal(game, gameResponse)
+
+	subscribeGameChannel := redisClient.Subscribe(resources.Context, "SubscribeGame:"+game.GameGUID)
+	defer subscribeGameChannel.Close()
+
+	err = redisClient.Publish(resources.Context, "SquareReserved:"+game.GameGUID, "SquareReserved").Err()
+	suite.NoError(err)
+}
 
 func (suite *WebsocketRoutesTestSuite) TestSubscribeGame() {
 
@@ -42,49 +224,54 @@ func (suite *WebsocketRoutesTestSuite) TestSubscribeGame() {
 
 	ctrl := gomock.NewController(suite.T())
 
-	httpRecorder := httptest.NewRecorder()
-
 	mockFootballSquareGame := mockfootballsquaregameapp.NewMockFootballSquareGame(ctrl)
 	mockFootballSquareGame.EXPECT().
 		GetFootballSquareGame(gomock.Any(), gomock.Any()).
 		AnyTimes().
 		Return(game, nil)
 
-	redisClient, redisServerMock := redismock.NewClientMock()
-	//redisServerMock.ExpectPublish("SquareReserved:"+game.GameGUID, `SquareReserved`)
-	redisServerMock.ExpectPublish("SubscribeGame:"+game.GameGUID, game.ToJson())
+	mRedis, err := miniredis.Run()
+	suite.NoError(err)
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     mRedis.Addr(),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
 	resources := resources.Resources{
 		RedisClient: redisClient,
 		Context:     context.Background(),
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer([]byte(``)))
-	suite.NoError(err)
-
 	serveMux := http.NewServeMux()
 	wsRoutes := NewWebSocketRoutes(mockFootballSquareGame)
 	wsRoutes.Register(serveMux, &resources)
-	handler, _ := serveMux.Handler(req)
 
-	server := httptest.NewServer(handler)
+	server := httptest.NewServer(serveMux)
 	defer server.Close()
 
 	wsUrl := "ws" + strings.TrimPrefix(server.URL, "http") + url
 
 	client, _, err := websocket.DefaultDialer.Dial(wsUrl, nil)
-	if err != nil {
-		suite.Fail("could not connect to WebSocket server: %v", err)
-	}
+	suite.NoError(err)
 	defer client.Close()
 
-	_, response, err := client.ReadMessage()
-	if err != nil {
-		suite.Fail("could not read message from WebSocket server: %v", err)
-	}
-	fmt.Println(string(response))
+	var gameResponse *app.GetGameResponse
 
-	suite.Equal(httpRecorder.Code, http.StatusOK)
+	_, response, _ := client.ReadMessage()
+	json.NewDecoder(bytes.NewReader(response)).Decode(&gameResponse)
+	suite.Equal(game, gameResponse)
+
+	subscribeGameChannel := redisClient.Subscribe(resources.Context, "SubscribeGame:"+game.GameGUID)
+	defer subscribeGameChannel.Close()
+
+	err = redisClient.Publish(resources.Context, "SquareReserved:"+game.GameGUID, "SquareReserved").Err()
+	suite.NoError(err)
+
+	subscribeGameresponse, err := subscribeGameChannel.ReceiveMessage(resources.Context)
+	suite.NoError(err)
+	suite.Equal(string(game.ToJson()), subscribeGameresponse.Payload)
 }
 
 func randomGetGameResponse() *app.GetGameResponse {
